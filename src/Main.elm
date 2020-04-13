@@ -1,9 +1,12 @@
 module Main exposing (main)
 
 import Browser
-import Html exposing (Html)
+import Browser.Navigation exposing (Key)
+import Html exposing (..)
+import Html.Attributes exposing (..)
 import Http
 import Journey exposing (Journey)
+import Url exposing (Url)
 
 
 type alias Flags =
@@ -16,6 +19,7 @@ type alias Model =
 
 type Msg
     = ReceivedJourneys (Result Http.Error (List Journey))
+    | NoOp
 
 
 view : Model -> Browser.Document Msg
@@ -31,14 +35,19 @@ update msg model =
         ReceivedJourneys result ->
             handleJourneyResponse result model
 
+        _ ->
+            ( model, Cmd.none )
+
 
 body : Model -> List (Html Msg)
 body model =
-    List.map Journey.render model.journeys
+    [ div [ class "container" ]
+        [ Journey.render model.journeys ]
+    ]
 
 
-init : Flags -> ( Model, Cmd Msg )
-init _ =
+init : Flags -> Url -> Key -> ( Model, Cmd Msg )
+init _ _ _ =
     ( { journeys = [] }, Journey.fetch ReceivedJourneys )
 
 
@@ -47,12 +56,18 @@ handleJourneyResponse result model =
         Ok journeys ->
             ( { journeys = journeys }, Cmd.none )
 
-        Err err ->
-            let
-                _ =
-                    Debug.log "error: " err
-            in
+        Err _ ->
             ( model, Cmd.none )
+
+
+onUrlRequest : Browser.UrlRequest -> Msg
+onUrlRequest _ =
+    NoOp
+
+
+onUrlChange : Url -> Msg
+onUrlChange _ =
+    NoOp
 
 
 
@@ -61,9 +76,11 @@ handleJourneyResponse result model =
 
 main : Program Flags Model Msg
 main =
-    Browser.document
+    Browser.application
         { init = init
         , view = view
         , update = update
         , subscriptions = always Sub.none
+        , onUrlRequest = onUrlRequest
+        , onUrlChange = onUrlChange
         }
