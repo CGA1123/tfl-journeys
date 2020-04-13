@@ -1,7 +1,9 @@
 module Main exposing (main)
 
 import Browser
-import Html
+import Html exposing (Html)
+import Http
+import Journey exposing (Journey)
 
 
 type alias Flags =
@@ -9,28 +11,48 @@ type alias Flags =
 
 
 type alias Model =
-    {}
+    { journeys : List Journey }
 
 
 type Msg
-    = NoOp
+    = ReceivedJourneys (Result Http.Error (List Journey))
 
 
 view : Model -> Browser.Document Msg
-view _ =
+view model =
     { title = "tfl-journeys"
-    , body = [ Html.text "Hello, world!" ]
+    , body = body model
     }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update _ model =
-    ( model, Cmd.none )
+update msg model =
+    case msg of
+        ReceivedJourneys result ->
+            handleJourneyResponse result model
+
+
+body : Model -> List (Html Msg)
+body model =
+    List.map Journey.render model.journeys
 
 
 init : Flags -> ( Model, Cmd Msg )
 init _ =
-    ( {}, Cmd.none )
+    ( { journeys = [] }, Journey.fetch ReceivedJourneys )
+
+
+handleJourneyResponse result model =
+    case result of
+        Ok journeys ->
+            ( { journeys = journeys }, Cmd.none )
+
+        Err err ->
+            let
+                _ =
+                    Debug.log "error: " err
+            in
+            ( model, Cmd.none )
 
 
 
