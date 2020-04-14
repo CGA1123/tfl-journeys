@@ -6463,7 +6463,13 @@ var author$project$Journey$averageTripMinutes = function (journeys) {
 	};
 };
 var author$project$Journey$costPerMinute = function (journeys) {
-	return {title: 'Cost per Minute', value: '£12.45'};
+	return {
+		title: 'Cost per Minute',
+		value: '£' + A2(
+			myrho$elm_round$Round$round,
+			2,
+			author$project$Journey$calcTotalCost(journeys) / author$project$Journey$calcTotalMinutes(journeys))
+	};
 };
 var author$project$Journey$tally = F2(
 	function (accessor, list) {

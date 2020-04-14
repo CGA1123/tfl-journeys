@@ -115,7 +115,7 @@ totalMinutes journeys =
 
 costPerMinute journeys =
     { title = "Cost per Minute"
-    , value = "£12.45"
+    , value = calcTotalCost journeys / toFloat (calcTotalMinutes journeys) |> Round.round 2 |> (++) "£"
     }
 
 
